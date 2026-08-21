@@ -295,21 +295,43 @@ async function apiGet(path){
   return json.response;
 }
 
-/* Trouve le match en cours ou le prochain match de l'équipe suivie */
+/* Trouve le match en cours ou le prochain match de l'équipe suivie.
+   Note: les paramètres "next" et "last" seuls sont bloqués sur le plan Free
+   ("Free plans do not have access..."). On passe donc par une recherche
+   sur une plage de dates, méthode toujours autorisée sur le plan gratuit. */
+function isoDate(d){
+  return d.toISOString().slice(0,10); // YYYY-MM-DD
+}
+
 async function findFixture(){
   // 1. Cherche un match live pour cette équipe
   const live = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&live=all`);
   if(live && live.length > 0) return live[0];
 
-  // 2. Sinon le prochain match à venir
-  const next = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&next=1`);
-  if(next && next.length > 0) return next[0];
+  // 2. Sinon regarde les fixtures sur une fenêtre de dates (J-10 à J+21)
+  //    pour couvrir aussi bien un match récent qu'un match à venir.
+  const today = new Date();
+  const from = new Date(today); from.setDate(from.getDate() - 10);
+  const to   = new Date(today); to.setDate(to.getDate() + 21);
 
-  // 3. Sinon le dernier match joué (post-match)
-  const last = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&last=1`);
-  if(last && last.length > 0) return last[0];
+  const window = await apiGet(
+    `/fixtures?team=${CONFIG.TEAM_ID}&from=${isoDate(from)}&to=${isoDate(to)}&timezone=Europe/Paris`
+  );
 
-  return null;
+  if(!window || window.length === 0) return null;
+
+  // Trie par date et priorise : le premier match pas encore terminé,
+  // sinon le plus récent match déjà joué.
+  const sorted = [...window].sort((a,b) =>
+    new Date(a.fixture.date) - new Date(b.fixture.date)
+  );
+
+  const finishedStatuses = new Set(["FT","AET","PEN","PST","CANC","ABD","AWD","WO"]);
+  const upcoming = sorted.find(f => !finishedStatuses.has(f.fixture.status.short));
+  if(upcoming) return upcoming;
+
+  // Tout est déjà joué dans la fenêtre : renvoie le plus récent
+  return sorted[sorted.length - 1];
 }
 
 const STATUS_MAP = {
