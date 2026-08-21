@@ -275,7 +275,9 @@
 const CONFIG = {
   API_KEY: "0ff28ece65f54981c6f1967ed9a06cad",           // ta clé depuis dashboard.api-football.com > My Access
   TEAM_ID: 91,                          // 91 = AS Monaco. Change pour suivre une autre équipe.
-  POLL_INTERVAL_MS: 60000,              // 60s = 2 appels/min max (score+events+lineups) → large marge sous 100/jour
+  POLL_INTERVAL_MS: 90000,              // 90s ≈ 80 appels sur un match de 2h, large marge sous 100/jour
+                                         // Astuce OBS : coche "Shutdown source when not visible" pour
+                                         // que la source arrête d'appeler l'API dès qu'elle n'est plus affichée.
   SHOW_LINEUPS_BEFORE_KICKOFF_MIN: 90,  // affiche les compos dès qu'elles sont publiées (~1h avant)
   MAX_EVENTS_SHOWN: 6
 };
