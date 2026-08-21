@@ -275,7 +275,7 @@
 const CONFIG = {
   API_KEY: "0ff28ece65f54981c6f1967ed9a06cad",           // ta clé depuis dashboard.api-football.com > My Access
   TEAM_ID: 91,                          // 91 = AS Monaco. Change pour suivre une autre équipe.
-  POLL_INTERVAL_MS: 20000,              // 20s = ~180 requêtes/2h, large marge sous les 100/jour
+  POLL_INTERVAL_MS: 60000,              // 60s = 2 appels/min max (score+events+lineups) → large marge sous 100/jour
   SHOW_LINEUPS_BEFORE_KICKOFF_MIN: 90,  // affiche les compos dès qu'elles sont publiées (~1h avant)
   MAX_EVENTS_SHOWN: 6
 };
@@ -283,6 +283,7 @@ const CONFIG = {
 const API_BASE = "https://v3.football.api-sports.io";
 let currentFixtureId = null;
 let lastEventIds = new Set();
+let lineupsFetched = false;
 
 function apiHeaders(){
   return { "x-apisports-key": CONFIG.API_KEY };
@@ -445,13 +446,18 @@ async function refresh(){
       return;
     }
 
+    const fixtureChanged = currentFixtureId !== fixture.fixture.id;
     currentFixtureId = fixture.fixture.id;
     renderScoreboard(fixture);
     renderEvents(fixture.events);
 
-    // Compos : récupérées séparément (souvent vide bien avant le match)
-    const lineups = await apiGet(`/fixtures/lineups?fixture=${currentFixtureId}`);
-    renderLineups(lineups);
+    // Compos : récupérées une seule fois (elles ne changent pas en cours de match),
+    // ou re-tentées si elles n'ont pas encore été publiées côté API.
+    if(fixtureChanged || !lineupsFetched){
+      const lineups = await apiGet(`/fixtures/lineups?fixture=${currentFixtureId}`);
+      renderLineups(lineups);
+      if(lineups && lineups.length >= 2) lineupsFetched = true;
+    }
 
   } catch(err){
     console.error("Overlay error:", err);
