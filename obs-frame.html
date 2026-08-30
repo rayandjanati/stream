@@ -220,7 +220,8 @@ const CONFIG = {
   API_KEY: "0ff28ece65f54981c6f1967ed9a06cad",
   TEAM_ID: 91,                 // 91 = AS Monaco
   POLL_INTERVAL_MS: 120000,
-  DEMO_MODE: true              // true = utilise les fausses données ci-dessous, aucun appel API.
+  DEMO_MODE: false,            // API active par défaut.
+  FALLBACK_TO_DEMO: true      // Si l'API ne répond pas, l'overlay reste rempli.
                                 // Mets sur false uniquement pour le vrai match.
 };
 
@@ -284,6 +285,22 @@ function currentSeason(){
   const year = now.getFullYear();
   const month = now.getMonth() + 1; // 1-12
   return month >= 7 ? year : year - 1;
+}
+
+async function hydrateFixture(fixture){
+  if(!fixture?.fixture?.id) return fixture;
+  const id = fixture.fixture.id;
+
+  // L'endpoint /fixtures ne contient pas toujours les statistiques et les compos.
+  // On les récupère séparément.
+  const [stats, lineups] = await Promise.all([
+    apiGet(`/fixtures/statistics?fixture=${id}`).catch(() => []),
+    apiGet(`/fixtures/lineups?fixture=${id}`).catch(() => [])
+  ]);
+
+  fixture.statistics = stats || [];
+  fixture.lineups = lineups || [];
+  return fixture;
 }
 
 async function findFixture(){
@@ -435,19 +452,34 @@ function render(fixture){
 }
 
 async function refresh(){
+  // Mode démo uniquement si demandé.
   if(CONFIG.DEMO_MODE){
     render(DEMO_FIXTURE);
     return;
   }
+
   try{
-    const fixture = currentFixtureId
+    let fixture = currentFixtureId
       ? (await apiGet(`/fixtures?id=${currentFixtureId}`))[0]
       : await findFixture();
-    if(!fixture) return;
+
+    if(!fixture){
+      if(CONFIG.FALLBACK_TO_DEMO) render(DEMO_FIXTURE);
+      return;
+    }
+
     currentFixtureId = fixture.fixture.id;
+    fixture = await hydrateFixture(fixture);
     render(fixture);
+
   } catch(err){
     console.error("Overlay error:", err);
+
+    // Important : la page ne reste jamais vide si l'API est bloquée,
+    // si la clé est refusée ou si OBS ne peut pas joindre l'API.
+    if(CONFIG.FALLBACK_TO_DEMO){
+      render(DEMO_FIXTURE);
+    }
   }
 }
 
