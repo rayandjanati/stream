@@ -3,122 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <title>Overlay match — AS Monaco</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/dist/tabler-icons.min.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
   :root{
-    --bg:#12151c;
-    --panel:#1a1f2a;
+    --bg:#0d1017;
+    --panel:#131722;
     --panel-border: rgba(255,255,255,0.07);
-    --accent:#c8102e;        /* rouge AS Monaco — seule touche de couleur */
-    --pitch:#16332a;
-    --pitch-line: rgba(255,255,255,0.28);
+    --home:#e30613;      /* rouge AS Monaco */
+    --away:#3b6bf5;      /* bleu — équipe adverse */
+    --pitch-line: rgba(255,255,255,0.22);
     --text:#f2f2f0;
     --muted:#7d8290;
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
-  html,body{ width:1280px; height:720px; overflow:hidden; font-family:'Inter', sans-serif; background:transparent; color:var(--text); }
+  html,body{ width:1920px; height:1080px; overflow:hidden; font-family:'Inter', sans-serif; background:transparent; color:var(--text); }
 
-  #frame{ position:relative; width:1280px; height:720px; }
+  #frame{ position:relative; width:1920px; height:1080px; }
 
-  /* ============ BANDEAU SCORE — pleine largeur, grille symétrique ============ */
+  /* ============ BANDEAU SCORE ============ */
   .top-bar{
-    position:absolute; top:0; left:0; width:100%; height:96px;
+    position:absolute; top:0; left:0; width:100%; height:150px;
     background: var(--bg);
     border-bottom: 1px solid var(--panel-border);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
     display:grid;
-    grid-template-columns: 1fr auto auto auto auto auto 1fr;
+    grid-template-columns: 90px 1fr auto 1fr 90px;
     align-items:center;
-    column-gap:18px;
-    padding: 0 28px;
+    column-gap:20px;
+    padding: 0 36px;
   }
   .tb-crest{
-    width:40px; height:40px; border-radius:50%; background:var(--panel);
+    width:78px; height:78px; border-radius:50%; background:var(--panel);
     border: 1px solid var(--panel-border);
-    background-size:64%; background-position:center; background-repeat:no-repeat;
+    background-size:70%; background-position:center; background-repeat:no-repeat;
     flex-shrink:0;
   }
-  .tb-crest.home{ justify-self:end; }
-  .tb-crest.away{ justify-self:start; }
 
-  .tb-divider{ width:1px; height:44px; background: var(--panel-border); }
-
+  .tb-name-block{ display:flex; flex-direction:column; gap:8px; }
+  .tb-name-block.home{ align-items:flex-end; }
+  .tb-name-block.away{ align-items:flex-start; }
   .tb-name{
-    font-family:'Oswald', sans-serif; font-weight:700; font-size:20px; letter-spacing:0.03em;
+    font-family:'Poppins', sans-serif; font-weight:800; font-size:34px; letter-spacing:0.01em;
     text-transform:uppercase; color:var(--text); white-space:nowrap;
   }
-  .tb-name.home{ text-align:right; justify-self:end; }
-  .tb-name.away{ text-align:left; justify-self:start; }
+  .tb-underline{ height:3px; width:70%; border-radius:2px; }
+  .tb-underline.home{ background: var(--home); align-self:flex-end; }
+  .tb-underline.away{ background: var(--away); align-self:flex-start; }
 
-  .tb-score-col{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:150px; }
-  .tb-competition{ display:flex; align-items:center; gap:5px; }
-  .tb-competition-badge{ width:10px; height:10px; border-radius:2px; background: var(--accent); flex-shrink:0; }
-  .tb-competition-label{ font-size:10px; color: var(--muted); letter-spacing:0.07em; text-transform:uppercase; }
-
-  .tb-score{
-    font-family:'Inter', sans-serif; font-weight:900; font-size:27px;
-    font-variant-numeric: tabular-nums; color:#fff; display:flex; align-items:center; gap:8px;
+  .tb-score-col{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:200px; }
+  .tb-score{ display:flex; align-items:center; gap:20px; }
+  .tb-score-val{
+    font-family:'Inter', sans-serif; font-weight:900; font-size:56px; line-height:1;
+    font-variant-numeric: tabular-nums;
   }
-  .tb-score .sep{ color:var(--accent); font-size:16px; }
-
-  .tb-status-row{ display:flex; align-items:center; gap:6px; }
-  .tb-live{
-    display:flex; align-items:center; gap:4px;
-    background: var(--accent); color:#fff; font-family:'Oswald', sans-serif; font-weight:600;
-    font-size:9px; letter-spacing:0.07em; text-transform:uppercase;
-    padding: 2px 7px; border-radius:2px;
+  .tb-score-val.home{ color: var(--home); }
+  .tb-score-val.away{ color:#f5f5f2; }
+  .tb-clock{
+    background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius:8px; padding:5px 16px;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:15px; color:var(--text);
+    font-variant-numeric: tabular-nums;
   }
-  .tb-live-dot{ width:4px; height:4px; border-radius:50%; background:#fff; animation: pulse 1.4s infinite; }
-  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-  .tb-status{ font-size:10px; color: var(--muted); letter-spacing:0.02em; }
 
-  .tb-progress-track{ width:120px; height:2px; background: var(--panel-border); border-radius:2px; overflow:hidden; margin-top:1px; }
-  .tb-progress-fill{ height:100%; background: var(--accent); width:0%; transition: width 0.6s ease; }
-
-  /* ============ PANNEAUX COMPOS — agrandis, avec remplaçants ============ */
+  /* ============ PANNEAUX COMPOS ============ */
   .xi-card{
-    position:absolute; top:112px; width:280px;
+    position:absolute; top:150px; width:400px; height:710px;
     background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.32);
-    padding: 14px 15px 16px;
+    padding: 18px 20px 20px;
+    overflow:hidden;
   }
-  .xi-card.left{ left:16px; }
-  .xi-card.right{ right:16px; }
+  .xi-card.left{ left:0; border-right: 2px solid var(--home); }
+  .xi-card.right{ right:0; border-left: 2px solid var(--away); }
 
-  .xi-header-label{
-    font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color: var(--muted);
-    margin-bottom:10px;
-  }
+  .xi-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+  .xi-team-name{ font-family:'Poppins', sans-serif; font-weight:800; font-size:19px; text-transform:uppercase; letter-spacing:0.01em; }
+  .xi-team-name.home{ color: var(--home); }
+  .xi-team-name.away{ color: var(--away); }
+  .xi-formation{ font-family:'Inter', sans-serif; font-weight:600; font-size:14px; color: var(--muted); }
 
-  .xi-team-row{ display:flex; align-items:center; gap:9px; margin-bottom:11px; padding-bottom:11px; border-bottom: 1px solid var(--panel-border); }
-  .xi-crest{
-    width:28px; height:28px; border-radius:50%; background:#20242f;
-    border: 1px solid var(--panel-border);
-    background-size:68%; background-position:center; background-repeat:no-repeat; flex-shrink:0;
-  }
-  .xi-team-name{ font-family:'Oswald', sans-serif; font-weight:600; font-size:13.5px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text); }
-  .xi-formation{ font-size:10px; color: var(--muted); margin-top:1px; }
+  .pitch-wrap{ width:100%; aspect-ratio: 280 / 400; margin-bottom:14px; }
 
-  .pitch-wrap{ width:100%; aspect-ratio: 250 / 360; border-radius:7px; overflow:hidden; }
+  .subs-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; padding-top:10px; border-top: 1px solid var(--panel-border); }
+  .subs-label{ font-family:'Poppins', sans-serif; font-weight:800; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color: var(--muted); }
+  .subs-row{ display:flex; justify-content:space-between; gap:6px; }
+  .sub-item{ display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; min-width:0; }
+  .sub-num{ font-family:'Inter', sans-serif; font-weight:800; font-size:14px; }
+  .sub-num.home{ color: var(--home); }
+  .sub-num.away{ color: var(--away); }
+  .sub-name{ font-family:'Inter', sans-serif; font-weight:600; font-size:10.5px; color: var(--text); text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 
-  .subs-section{ margin-top:13px; padding-top:12px; border-top: 1px solid var(--panel-border); }
-  .subs-label{ font-size:9.5px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color: var(--muted); margin-bottom:8px; }
-  .subs-grid{ display:grid; grid-template-columns: 1fr 1fr; column-gap:10px; row-gap:5px; }
-  .sub-row{ display:flex; align-items:center; gap:6px; font-size:11px; overflow:hidden; }
-  .sub-num{ color: var(--accent); font-weight:700; width:16px; flex-shrink:0; text-align:right; }
-  .sub-name{ color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-  /* ============ CADRE DÉCORATIF WEBCAM ============ */
+  /* ============ CADRE WEBCAM ============ */
   .webcam-frame{
-    position:absolute; top:112px; left:312px; width:656px; height:592px;
-    border-radius:12px;
-    border: 1px solid var(--panel-border);
+    position:absolute; top:150px; left:400px; width:1120px; height:710px;
+    border: 2px solid var(--home);
     pointer-events:none;
   }
+
+  /* ============ BANDEAU STATS BAS ============ */
+  .bottom-panel{
+    position:absolute; bottom:0; left:0; width:100%; height:220px;
+    background: var(--panel);
+    border-top: 1px solid var(--panel-border);
+    display:flex;
+  }
+  .stat-col{
+    flex:1; padding: 18px 10px; display:flex; flex-direction:column; align-items:center; gap:10px;
+    border-right: 1px solid var(--panel-border);
+  }
+  .stat-col:last-child{ border-right:none; }
+  .stat-head{ display:flex; align-items:center; gap:7px; }
+  .stat-head i{ font-size:15px; color: var(--muted); }
+  .stat-head span{
+    font-family:'Poppins', sans-serif; font-weight:700; font-size:11px; letter-spacing:0.06em;
+    text-transform:uppercase; color: var(--muted);
+  }
+  .stat-nums{ display:flex; align-items:baseline; gap:14px; }
+  .stat-num{ font-family:'Inter', sans-serif; font-weight:900; font-size:34px; font-variant-numeric:tabular-nums; }
+  .stat-num.home{ color: var(--home); }
+  .stat-num.away{ color: var(--away); }
+  .stat-bar-track{ width:88%; height:4px; border-radius:2px; overflow:hidden; display:flex; }
+  .stat-bar-home{ height:100%; background: var(--home); }
+  .stat-bar-away{ height:100%; background: var(--away); }
 </style>
 </head>
 <body>
@@ -126,59 +134,77 @@
 <div id="frame">
 
   <div class="top-bar">
-    <div class="tb-crest home" id="homeCrest"></div>
-    <div class="tb-name home" id="homeName">DOMICILE</div>
-    <div class="tb-divider"></div>
-    <div class="tb-score-col">
-      <div class="tb-competition">
-        <div class="tb-competition-badge"></div>
-        <div class="tb-competition-label" id="competitionLabel">—</div>
-      </div>
-      <div class="tb-score">
-        <span id="homeScore">0</span><span class="sep">–</span><span id="awayScore">0</span>
-      </div>
-      <div class="tb-status-row">
-        <div class="tb-live" id="tbLive" style="display:none;"><div class="tb-live-dot"></div>LIVE</div>
-        <div class="tb-status" id="statusLabel">À venir</div>
-      </div>
-      <div class="tb-progress-track"><div class="tb-progress-fill" id="progressFill"></div></div>
+    <div class="tb-crest" id="homeCrest"></div>
+    <div class="tb-name-block home">
+      <div class="tb-name" id="homeName">DOMICILE</div>
+      <div class="tb-underline home"></div>
     </div>
-    <div class="tb-divider"></div>
-    <div class="tb-name away" id="awayName">EXTÉRIEUR</div>
-    <div class="tb-crest away" id="awayCrest"></div>
+    <div class="tb-score-col">
+      <div class="tb-score">
+        <div class="tb-score-val home" id="homeScore">0</div>
+        <div class="tb-score-val away" id="awayScore">0</div>
+      </div>
+      <div class="tb-clock" id="clock">--'</div>
+    </div>
+    <div class="tb-name-block away">
+      <div class="tb-name" id="awayName">EXTÉRIEUR</div>
+      <div class="tb-underline away"></div>
+    </div>
+    <div class="tb-crest" id="awayCrest"></div>
   </div>
 
   <div class="xi-card left">
-    <div class="xi-header-label">Composition</div>
-    <div class="xi-team-row">
-      <div class="xi-crest" id="xiHomeCrest"></div>
-      <div>
-        <div class="xi-team-name" id="xiHomeName">Domicile</div>
-        <div class="xi-formation" id="homeFormation"></div>
-      </div>
+    <div class="xi-head">
+      <div class="xi-team-name home" id="xiHomeName">DOMICILE</div>
+      <div class="xi-formation" id="homeFormation"></div>
     </div>
     <div class="pitch-wrap" id="homePitch"></div>
-    <div class="subs-section">
-      <div class="subs-label">Remplaçants</div>
-      <div class="subs-grid" id="homeSubs"></div>
-    </div>
+    <div class="subs-head"><div class="subs-label">Remplaçants</div></div>
+    <div class="subs-row" id="homeSubs"></div>
   </div>
 
   <div class="webcam-frame"></div>
 
   <div class="xi-card right">
-    <div class="xi-header-label">Composition</div>
-    <div class="xi-team-row">
-      <div class="xi-crest" id="xiAwayCrest"></div>
-      <div>
-        <div class="xi-team-name" id="xiAwayName">Extérieur</div>
-        <div class="xi-formation" id="awayFormation"></div>
-      </div>
+    <div class="xi-head">
+      <div class="xi-team-name away" id="xiAwayName">EXTÉRIEUR</div>
+      <div class="xi-formation" id="awayFormation"></div>
     </div>
     <div class="pitch-wrap" id="awayPitch"></div>
-    <div class="subs-section">
-      <div class="subs-label">Remplaçants</div>
-      <div class="subs-grid" id="awaySubs"></div>
+    <div class="subs-head"><div class="subs-label">Remplaçants</div></div>
+    <div class="subs-row" id="awaySubs"></div>
+  </div>
+
+  <div class="bottom-panel" id="bottomPanel">
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-chart-pie"></i><span>Possession</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statPossHome">0%</div><div class="stat-num away" id="statPossAway">0%</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barPossHome" style="width:50%"></div><div class="stat-bar-away" id="barPossAway" style="width:50%"></div></div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-target-arrow"></i><span>Tirs</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statShotsHome">0</div><div class="stat-num away" id="statShotsAway">0</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barShotsHome" style="width:50%"></div><div class="stat-bar-away" id="barShotsAway" style="width:50%"></div></div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-focus-2"></i><span>Tirs cadrés</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statOnTargetHome">0</div><div class="stat-num away" id="statOnTargetAway">0</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barOnTargetHome" style="width:50%"></div><div class="stat-bar-away" id="barOnTargetAway" style="width:50%"></div></div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-flag"></i><span>Corners</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statCornersHome">0</div><div class="stat-num away" id="statCornersAway">0</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barCornersHome" style="width:50%"></div><div class="stat-bar-away" id="barCornersAway" style="width:50%"></div></div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-hand-stop"></i><span>Fautes</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statFoulsHome">0</div><div class="stat-num away" id="statFoulsAway">0</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barFoulsHome" style="width:50%"></div><div class="stat-bar-away" id="barFoulsAway" style="width:50%"></div></div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-head"><i class="ti ti-square-rounded" style="color:#e8b800;"></i><span>Cartons jaunes</span></div>
+      <div class="stat-nums"><div class="stat-num home" id="statYellowHome">0</div><div class="stat-num away" id="statYellowAway">0</div></div>
+      <div class="stat-bar-track"><div class="stat-bar-home" id="barYellowHome" style="width:50%"></div><div class="stat-bar-away" id="barYellowAway" style="width:50%"></div></div>
     </div>
   </div>
 
@@ -189,7 +215,7 @@
    CONFIG
    ===================================================================== */
 const CONFIG = {
-  API_KEY: "TA_CLE_API_ICI",
+  API_KEY: "0ff28ece65f54981c6f1967ed9a06cad",
   TEAM_ID: 91,                 // 91 = AS Monaco
   POLL_INTERVAL_MS: 120000
 };
@@ -221,15 +247,6 @@ async function findFixture(){
   return upcoming || sorted[sorted.length - 1];
 }
 
-const STATUS_MAP = {
-  "1H": { label: "1ère mi-temps", live: true }, "2H": { label: "2ème mi-temps", live: true },
-  "HT": { label: "Mi-temps", live: true }, "ET": { label: "Prolongations", live: true },
-  "P":  { label: "Tirs au but", live: true }, "LIVE": { label: "En direct", live: true },
-  "NS": { label: "À venir", live: false }, "FT": { label: "Terminé", live: false },
-  "AET": { label: "Terminé", live: false }, "PEN": { label: "Terminé", live: false },
-  "PST": { label: "Reporté", live: false }, "CANC": { label: "Annulé", live: false }
-};
-
 /* ---------- Positionnement tactique (terrain) ---------- */
 function buildPositions(formation, startXI){
   const hasGrid = startXI.every(p => p.player.grid);
@@ -246,7 +263,7 @@ function buildPositions(formation, startXI){
     rowNums.forEach(r => {
       const arr = rows[r].sort((a,b)=>a.col-b.col);
       const n = arr.length;
-      arr.forEach((p,i) => positions.push({ player: p.player, x:(i+1)/(n+1), y: 1-(r-1)/((maxRow-1)||1) }));
+      arr.forEach((p,i) => positions.push({ player: p.player, x:(i+1)/(n+1), y: (r-1)/((maxRow-1)||1) }));
     });
     return positions;
   }
@@ -257,67 +274,79 @@ function buildPositions(formation, startXI){
   groups.forEach((count, li) => {
     const rowPlayers = startXI.slice(idx, idx+count);
     idx += count;
-    rowPlayers.forEach((p,ci) => positions.push({ player: p.player, x:(ci+1)/(count+1), y: 1-li/((groups.length-1)||1) }));
+    rowPlayers.forEach((p,ci) => positions.push({ player: p.player, x:(ci+1)/(count+1), y: li/((groups.length-1)||1) }));
   });
   return positions;
 }
 
-function renderPitch(formation, startXI){
+function renderPitch(formation, startXI, side){
   const positions = buildPositions(formation, startXI);
-  const W = 250, H = 360;
-  const boundary = { x:4, y:4, w:242, h:352 };
-  const marginX = 20, marginTop = 18, marginBottom = 32;
+  const W = 280, H = 400;
+  const boundary = { x:4, y:4, w:272, h:392 };
+  const marginX = 22, marginTop = 24, marginBottom = 38;
   const usableW = W - marginX*2, usableH = H - marginTop - marginBottom;
   const halfwayY = boundary.y + boundary.h/2;
+  const numColor = side === "home" ? "#ff5a68" : "#7a9bff";
 
-  const markers = positions.map((p, idx) => {
+  const markers = positions.map((p) => {
     const cx = marginX + p.x * usableW, cy = marginTop + p.y * usableH;
     const rowSize = positions.filter(q => Math.abs(q.y - p.y) < 0.001).length;
-    const fontSize = rowSize >= 5 ? 8.5 : 9.5;
-    const isGK = idx === 0;
-    const dotColor = isGK ? "#1fae5a" : "var(--accent)";
-    const surname = (p.player.name || "").split(" ").slice(-1)[0];
+    const fontSize = rowSize >= 5 ? 9 : rowSize === 4 ? 9.5 : 11;
+    const surname = (p.player.name || "").split(" ").slice(-1)[0].toUpperCase();
+    const slotWidth = usableW / (rowSize + 1) - 4;
+    const naturalWidth = surname.length * fontSize * 0.62;
+    const clampedWidth = Math.min(naturalWidth, slotWidth);
     return `
-      <g>
-        <circle cx="${cx}" cy="${cy}" r="10.5" fill="${dotColor}" stroke="#ffffff" stroke-width="1.6"/>
-        <text x="${cx}" y="${cy+3.2}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="9" fill="#ffffff">${p.player.number ?? ""}</text>
-        <text x="${cx}" y="${cy+18.5}" text-anchor="middle" font-family="Inter" font-weight="600" font-size="${fontSize}" fill="#ffffff" stroke="rgba(0,0,0,0.4)" stroke-width="2.6" paint-order="stroke">${surname}</text>
-      </g>`;
+      <text x="${cx}" y="${cy-3}" text-anchor="middle" font-family="Inter" font-weight="800" font-size="14" fill="${numColor}">${p.player.number ?? ""}</text>
+      <text x="${cx}" y="${cy+15}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="${fontSize}" fill="#f2f2f0"
+            textLength="${clampedWidth}" lengthAdjust="spacingAndGlyphs">${surname}</text>`;
   }).join("");
 
   return `
     <svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="display:block;">
-      <rect x="0" y="0" width="${W}" height="${H}" fill="var(--pitch)"/>
       <rect x="${boundary.x}" y="${boundary.y}" width="${boundary.w}" height="${boundary.h}" fill="none" stroke="var(--pitch-line)" stroke-width="1.4"/>
       <line x1="${boundary.x}" y1="${halfwayY}" x2="${boundary.x+boundary.w}" y2="${halfwayY}" stroke="var(--pitch-line)" stroke-width="1.2"/>
-      <circle cx="${W/2}" cy="${halfwayY}" r="29" fill="none" stroke="var(--pitch-line)" stroke-width="1.2"/>
+      <circle cx="${W/2}" cy="${halfwayY}" r="32" fill="none" stroke="var(--pitch-line)" stroke-width="1.2"/>
       <circle cx="${W/2}" cy="${halfwayY}" r="2" fill="var(--pitch-line)"/>
-      <rect x="${W/2-50}" y="${boundary.y+boundary.h-36}" width="100" height="36" fill="none" stroke="var(--pitch-line)" stroke-width="1.1" opacity="0.85"/>
-      <rect x="${W/2-24}" y="${boundary.y+boundary.h-14}" width="48" height="14" fill="none" stroke="var(--pitch-line)" stroke-width="1.1" opacity="0.85"/>
-      <rect x="${W/2-50}" y="${boundary.y}" width="100" height="36" fill="none" stroke="var(--pitch-line)" stroke-width="1.1" opacity="0.85"/>
-      <rect x="${W/2-24}" y="${boundary.y+14}" width="48" height="14" fill="none" stroke="var(--pitch-line)" stroke-width="1.1" opacity="0.85"/>
+      <rect x="${W/2-56}" y="${boundary.y+boundary.h-40}" width="112" height="40" fill="none" stroke="var(--pitch-line)" stroke-width="1.1"/>
+      <rect x="${W/2-27}" y="${boundary.y+boundary.h-15}" width="54" height="15" fill="none" stroke="var(--pitch-line)" stroke-width="1.1"/>
+      <rect x="${W/2-56}" y="${boundary.y}" width="112" height="40" fill="none" stroke="var(--pitch-line)" stroke-width="1.1"/>
+      <rect x="${W/2-27}" y="${boundary.y+15}" width="54" height="15" fill="none" stroke="var(--pitch-line)" stroke-width="1.1"/>
       ${markers}
     </svg>`;
 }
 
-function renderSubs(el, substitutes){
+function renderSubs(el, substitutes, side){
   if(!substitutes || substitutes.length === 0){ el.innerHTML = ""; return; }
-  el.innerHTML = substitutes.map(p => `
-    <div class="sub-row">
-      <div class="sub-num">${p.player.number ?? ""}</div>
+  el.innerHTML = substitutes.slice(0, 5).map(p => `
+    <div class="sub-item">
+      <div class="sub-num ${side}">${p.player.number ?? ""}</div>
       <div class="sub-name">${(p.player.name || "").split(" ").slice(-1)[0]}</div>
     </div>`).join("");
 }
 
 function setCrest(el, logo){ el.style.backgroundImage = logo ? `url(${logo})` : ""; }
 
+function findStat(statistics, teamId, type){
+  const entry = statistics?.find(s => s.team.id === teamId)?.statistics?.find(s => s.type === type);
+  const raw = entry?.value;
+  if(raw === null || raw === undefined) return 0;
+  return parseFloat(String(raw).replace("%","")) || 0;
+}
+
+function applyStatPair(prefix, homeVal, awayVal, suffix){
+  const max = Math.max(homeVal, awayVal, 1);
+  document.getElementById(`stat${prefix}Home`).textContent = homeVal + (suffix||"");
+  document.getElementById(`stat${prefix}Away`).textContent = awayVal + (suffix||"");
+  document.getElementById(`bar${prefix}Home`).style.width = (homeVal/max*50) + "%";
+  document.getElementById(`bar${prefix}Away`).style.width = (awayVal/max*50) + "%";
+}
+
 function render(fixture){
-  const { teams, goals, fixture: fx, league, lineups } = fixture;
+  const { teams, goals, fixture: fx, statistics } = fixture;
 
   setCrest(document.getElementById("homeCrest"), teams.home.logo);
   setCrest(document.getElementById("awayCrest"), teams.away.logo);
-  setCrest(document.getElementById("xiHomeCrest"), teams.home.logo);
-  setCrest(document.getElementById("xiAwayCrest"), teams.away.logo);
 
   document.getElementById("homeName").textContent = teams.home.name;
   document.getElementById("awayName").textContent = teams.away.name;
@@ -325,28 +354,27 @@ function render(fixture){
   document.getElementById("xiAwayName").textContent = teams.away.name;
   document.getElementById("homeScore").textContent = goals.home ?? 0;
   document.getElementById("awayScore").textContent = goals.away ?? 0;
+  document.getElementById("clock").textContent = fx.status.elapsed ? `${fx.status.elapsed}'` : (fx.status.short === "NS" ? "À venir" : fx.status.short);
 
-  const round = league.round ? league.round.replace(/Regular Season - /i,"J") : "";
-  document.getElementById("competitionLabel").textContent = [league.name, round].filter(Boolean).join(" · ");
+  applyStatPair("Poss", findStat(statistics, teams.home.id, "Ball Possession"), findStat(statistics, teams.away.id, "Ball Possession"), "%");
+  applyStatPair("Shots", findStat(statistics, teams.home.id, "Total Shots"), findStat(statistics, teams.away.id, "Total Shots"));
+  applyStatPair("OnTarget", findStat(statistics, teams.home.id, "Shots on Goal"), findStat(statistics, teams.away.id, "Shots on Goal"));
+  applyStatPair("Corners", findStat(statistics, teams.home.id, "Corner Kicks"), findStat(statistics, teams.away.id, "Corner Kicks"));
+  applyStatPair("Fouls", findStat(statistics, teams.home.id, "Fouls"), findStat(statistics, teams.away.id, "Fouls"));
+  applyStatPair("Yellow", findStat(statistics, teams.home.id, "Yellow Cards"), findStat(statistics, teams.away.id, "Yellow Cards"));
 
-  const st = STATUS_MAP[fx.status.short] || { label: fx.status.short, live: false };
-  document.getElementById("tbLive").style.display = st.live ? "flex" : "none";
-  document.getElementById("statusLabel").textContent = st.live && fx.status.elapsed ? `${st.label} · ${fx.status.elapsed}'` : st.label;
-  const progressPct = st.live && fx.status.elapsed ? Math.min(100, (fx.status.elapsed/90)*100) : (fx.status.short === "FT" ? 100 : 0);
-  document.getElementById("progressFill").style.width = progressPct + "%";
-
-  if(lineups && lineups.length >= 2){
-    const home = lineups.find(l => l.team.id === teams.home.id);
-    const away = lineups.find(l => l.team.id === teams.away.id);
+  if(fixture.lineups && fixture.lineups.length >= 2){
+    const home = fixture.lineups.find(l => l.team.id === teams.home.id);
+    const away = fixture.lineups.find(l => l.team.id === teams.away.id);
     if(home?.startXI?.length){
       document.getElementById("homeFormation").textContent = home.formation || "";
-      document.getElementById("homePitch").innerHTML = renderPitch(home.formation, home.startXI);
-      renderSubs(document.getElementById("homeSubs"), home.substitutes);
+      document.getElementById("homePitch").innerHTML = renderPitch(home.formation, home.startXI, "home");
+      renderSubs(document.getElementById("homeSubs"), home.substitutes, "home");
     }
     if(away?.startXI?.length){
       document.getElementById("awayFormation").textContent = away.formation || "";
-      document.getElementById("awayPitch").innerHTML = renderPitch(away.formation, away.startXI);
-      renderSubs(document.getElementById("awaySubs"), away.substitutes);
+      document.getElementById("awayPitch").innerHTML = renderPitch(away.formation, away.startXI, "away");
+      renderSubs(document.getElementById("awaySubs"), away.substitutes, "away");
     }
   }
 }
