@@ -293,6 +293,46 @@ function render(){
 }
 
 render();
+
+/* ---------- Chrono automatique (raccourci clavier, invisible à l'écran) ---------- */
+let chronoRunning = false;
+let chronoStartTs = 0;
+
+function tickChrono(){
+  const el = document.getElementById("clock");
+  const minutes = Math.floor((Date.now() - chronoStartTs) / 60000);
+  el.textContent = `${minutes}'`;
+}
+
+function toggleChrono(){
+  const el = document.getElementById("clock");
+  if(!chronoRunning){
+    // Repart depuis la valeur actuellement affichée (permet de corriger la minute avant de lancer)
+    const currentMin = parseInt(el.textContent, 10) || 0;
+    chronoStartTs = Date.now() - currentMin * 60000;
+    chronoRunning = true;
+    window.__chronoInterval = setInterval(tickChrono, 1000);
+  } else {
+    chronoRunning = false;
+    clearInterval(window.__chronoInterval);
+  }
+}
+
+// Barre d'espace = démarrer/mettre en pause. Ne s'active pas si tu es en train
+// de taper dans un champ (score, minute) pour ne pas gêner la saisie.
+document.addEventListener("keydown", (e) => {
+  const editing = document.activeElement && document.activeElement.getAttribute("contenteditable") === "true";
+  if(e.code === "Space" && !editing){
+    e.preventDefault();
+    toggleChrono();
+  }
+});
+
+// Si on clique dans la minute pour la corriger à la main, on met le chrono en pause
+// automatiquement pour que la correction ne soit pas écrasée à la seconde suivante.
+document.getElementById("clock").addEventListener("focus", () => {
+  if(chronoRunning) toggleChrono();
+});
 </script>
 
 </body>
