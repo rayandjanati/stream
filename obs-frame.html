@@ -61,6 +61,7 @@
   }
   .tb-score-val.home{ color: var(--home); }
   .tb-score-val.away{ color:#f5f5f2; }
+  .tb-score-sep{ font-family:'Inter', sans-serif; font-weight:700; font-size:36px; color: var(--muted); }
   .tb-clock{
     background: var(--panel); border: 1px solid var(--panel-border);
     border-radius:8px; padding:5px 16px;
@@ -142,6 +143,7 @@
     <div class="tb-score-col">
       <div class="tb-score">
         <div class="tb-score-val home" id="homeScore">0</div>
+        <div class="tb-score-sep">–</div>
         <div class="tb-score-val away" id="awayScore">0</div>
       </div>
       <div class="tb-clock" id="clock">--'</div>
@@ -217,7 +219,51 @@
 const CONFIG = {
   API_KEY: "0ff28ece65f54981c6f1967ed9a06cad",
   TEAM_ID: 91,                 // 91 = AS Monaco
-  POLL_INTERVAL_MS: 120000
+  POLL_INTERVAL_MS: 120000,
+  DEMO_MODE: true              // true = utilise les fausses données ci-dessous, aucun appel API.
+                                // Mets sur false uniquement pour le vrai match.
+};
+
+const DEMO_FIXTURE = {
+  teams: {
+    home: { id: 91, name: "AS Monaco", logo: "" },
+    away: { id: 81, name: "Olympique de Marseille", logo: "" }
+  },
+  goals: { home: 2, away: 1 },
+  fixture: { status: { short: "2H", elapsed: 67 } },
+  league: { name: "Ligue 1", round: "Regular Season - 5" },
+  statistics: [
+    { team:{id:91}, statistics:[
+      {type:"Ball Possession", value:"60%"}, {type:"Total Shots", value:"14"},
+      {type:"Shots on Goal", value:"5"}, {type:"Corner Kicks", value:"8"},
+      {type:"Fouls", value:"9"}, {type:"Yellow Cards", value:"1"}
+    ]},
+    { team:{id:81}, statistics:[
+      {type:"Ball Possession", value:"40%"}, {type:"Total Shots", value:"6"},
+      {type:"Shots on Goal", value:"2"}, {type:"Corner Kicks", value:"1"},
+      {type:"Fouls", value:"7"}, {type:"Yellow Cards", value:"2"}
+    ]}
+  ],
+  lineups: [
+    { team: { id: 91 }, formation: "4-2-3-1", startXI: [
+      {player:{number:16,name:"Brunner"}},{player:{number:2,name:"Coulibaly"}},{player:{number:3,name:"Golovin"}},{player:{number:21,name:"Idumbo"}},
+      {player:{number:4,name:"Camara"}},{player:{number:6,name:"Zakaria"}},
+      {player:{number:15,name:"Nazinho"}},{player:{number:10,name:"Dier"}},{player:{number:19,name:"Sané"}},
+      {player:{number:11,name:"Vanderson"}}
+    ], substitutes: [
+      {player:{number:9,name:"Biereth"}},{player:{number:5,name:"Kehrer"}},{player:{number:18,name:"Detourbet"}},
+      {player:{number:24,name:"Soubeir"}},{player:{number:27,name:"Touré"}}
+    ]},
+    { team: { id: 81 }, formation: "4-2-3-1", startXI: [
+      {player:{number:1,name:"Rulli"}},{player:{number:2,name:"Murillo"}},{player:{number:5,name:"Balerdi"}},{player:{number:99,name:"Mbemba"}},{player:{number:3,name:"Merlin"}},
+      {player:{number:23,name:"Højbjerg"}},{player:{number:27,name:"Veretout"}},
+      {player:{number:10,name:"Aubameyang"}},{player:{number:8,name:"Gündogan"}},{player:{number:17,name:"Sarr"}},
+      {player:{number:9,name:"Vitinha"}}
+    ], substitutes: [
+      {player:{number:11,name:"Harit"}},{player:{number:29,name:"Ndiaye"}},{player:{number:19,name:"Kondogbia"}},
+      {player:{number:20,name:"Correa"}},{player:{number:62,name:"Mughe"}}
+    ]}
+  ]
 };
 
 const API_BASE = "https://v3.football.api-sports.io";
@@ -231,6 +277,15 @@ async function apiGet(path){
 }
 function isoDate(d){ return d.toISOString().slice(0,10); }
 
+function currentSeason(){
+  // La saison européenne démarre autour de juillet : avant juillet on est
+  // encore sur la saison qui a commencé l'année précédente.
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-12
+  return month >= 7 ? year : year - 1;
+}
+
 async function findFixture(){
   const live = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&live=all`);
   if(live && live.length > 0) return live[0];
@@ -238,7 +293,7 @@ async function findFixture(){
   const today = new Date();
   const from = new Date(today); from.setDate(from.getDate() - 10);
   const to   = new Date(today); to.setDate(to.getDate() + 21);
-  const window = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&from=${isoDate(from)}&to=${isoDate(to)}&timezone=Europe/Paris`);
+  const window = await apiGet(`/fixtures?team=${CONFIG.TEAM_ID}&season=${currentSeason()}&from=${isoDate(from)}&to=${isoDate(to)}&timezone=Europe/Paris`);
   if(!window || window.length === 0) return null;
 
   const sorted = [...window].sort((a,b) => new Date(a.fixture.date) - new Date(b.fixture.date));
@@ -380,6 +435,10 @@ function render(fixture){
 }
 
 async function refresh(){
+  if(CONFIG.DEMO_MODE){
+    render(DEMO_FIXTURE);
+    return;
+  }
   try{
     const fixture = currentFixtureId
       ? (await apiGet(`/fixtures?id=${currentFixtureId}`))[0]
