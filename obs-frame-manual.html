@@ -73,7 +73,7 @@
     font-family:'Inter', sans-serif; font-size:11px; font-weight:600;
     color: var(--muted); text-align:center; letter-spacing:0.02em;
   }
-  .chrono-status.visible{ display:block; }
+  .chrono-status.visible{ display:none !important; }
   .tb-score-sep{ font-family:'Inter', sans-serif; font-weight:700; font-size:36px; color: var(--muted); }
   .tb-clock{
     background: var(--panel); border: 1px solid var(--panel-border);
@@ -334,15 +334,31 @@ function toggleChrono(){
 function updateChronoStatusText(){
   const el = document.getElementById("chronoStatus");
   if(chronoRunning){
+    document.title = "CHRONO EN COURS";
     el.textContent = "● Chrono en cours";
     el.style.color = "#3ecb7e";
   } else {
+    document.title = "CHRONO EN PAUSE";
     el.textContent = "❚❚ Chrono en pause";
     el.style.color = "var(--muted)";
   }
 }
 
-// Le voyant reste affiché dans la source pour que tu voies immédiatement l'état du chrono.
+// Le voyant est totalement caché pour les viewers.
+document.getElementById("chronoStatus").style.display = "none";
+
+// OBS ne transmet pas toujours les touches clavier à une source navigateur.
+// Contrôle fiable : en mode « Interagir », clique dans le grand bandeau vide du bas.
+document.querySelector(".bottom-panel").addEventListener("click", (e) => {
+  e.preventDefault();
+  toggleChrono();
+});
+
+// Contrôle de secours : clic droit n'importe où dans l'overlay.
+document.addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+  toggleChrono();
+});
 
 // Barre d'espace = démarrer/mettre en pause. Ne s'active pas si tu es en train
 // de taper dans un champ (score, minute) pour ne pas gêner la saisie.
