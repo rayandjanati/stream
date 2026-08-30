@@ -63,6 +63,17 @@
   .tb-score-val[contenteditable]{ outline:none; cursor:text; border-radius:6px; padding:0 4px; }
   .tb-score-val[contenteditable]:hover{ background: rgba(255,255,255,0.06); }
   .tb-clock[contenteditable]{ outline:none; cursor:text; }
+
+  /* Visible UNIQUEMENT quand la fenêtre a le focus (donc seulement quand toi,
+     le streamer, es en train d'interagir avec la source dans OBS — jamais
+     visible dans le flux vu par les spectateurs). */
+  .chrono-status{
+    display:none;
+    margin-top:4px;
+    font-family:'Inter', sans-serif; font-size:11px; font-weight:600;
+    color: var(--muted); text-align:center; letter-spacing:0.02em;
+  }
+  .chrono-status.visible{ display:block; }
   .tb-score-sep{ font-family:'Inter', sans-serif; font-weight:700; font-size:36px; color: var(--muted); }
   .tb-clock{
     background: var(--panel); border: 1px solid var(--panel-border);
@@ -129,6 +140,7 @@
         <div class="tb-score-val away" id="awayScore" contenteditable="true" spellcheck="false">0</div>
       </div>
       <div class="tb-clock" id="clock" contenteditable="true" spellcheck="false">0'</div>
+      <div class="chrono-status" id="chronoStatus">❚❚ Chrono en pause</div>
     </div>
     <div class="tb-name-block away">
       <div class="tb-name" id="awayName">EXTÉRIEUR</div>
@@ -316,7 +328,29 @@ function toggleChrono(){
     chronoRunning = false;
     clearInterval(window.__chronoInterval);
   }
+  updateChronoStatusText();
 }
+
+function updateChronoStatusText(){
+  const el = document.getElementById("chronoStatus");
+  if(chronoRunning){
+    el.textContent = "● Chrono en cours";
+    el.style.color = "#3ecb7e";
+  } else {
+    el.textContent = "❚❚ Chrono en pause";
+    el.style.color = "var(--muted)";
+  }
+}
+
+// Le statut n'apparaît que pendant que la fenêtre a le focus, c'est-à-dire
+// uniquement quand tu es en train d'interagir avec la source dans OBS.
+function updateChronoStatusVisibility(){
+  document.getElementById("chronoStatus").classList.toggle("visible", document.hasFocus());
+}
+window.addEventListener("focus", updateChronoStatusVisibility);
+window.addEventListener("blur", updateChronoStatusVisibility);
+updateChronoStatusVisibility();
+updateChronoStatusText();
 
 // Barre d'espace = démarrer/mettre en pause. Ne s'active pas si tu es en train
 // de taper dans un champ (score, minute) pour ne pas gêner la saisie.
