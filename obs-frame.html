@@ -221,7 +221,7 @@ const CONFIG = {
   TEAM_ID: 91,                 // 91 = AS Monaco
   POLL_INTERVAL_MS: 120000,
   DEMO_MODE: false,            // API active par défaut.
-  FALLBACK_TO_DEMO: true      // Si l'API ne répond pas, l'overlay reste rempli.
+  FALLBACK_TO_DEMO: false     // Ne jamais afficher de fausses données si l'API échoue.
                                 // Mets sur false uniquement pour le vrai match.
 };
 
@@ -451,6 +451,20 @@ function render(fixture){
   }
 }
 
+function renderPreMatch(){
+  // État neutre si le match n'a pas encore commencé ou si l'API ne répond pas.
+  const homeScore = document.getElementById("homeScore");
+  const awayScore = document.getElementById("awayScore");
+  const minute = document.getElementById("minute");
+  if(homeScore) homeScore.textContent = "0";
+  if(awayScore) awayScore.textContent = "0";
+  if(minute) minute.textContent = "AVANT-MATCH";
+
+  document.querySelectorAll(".stat-value").forEach(el => {
+    el.textContent = "0";
+  });
+}
+
 async function refresh(){
   // Mode démo uniquement si demandé.
   if(CONFIG.DEMO_MODE){
@@ -465,6 +479,7 @@ async function refresh(){
 
     if(!fixture){
       if(CONFIG.FALLBACK_TO_DEMO) render(DEMO_FIXTURE);
+      else renderPreMatch();
       return;
     }
 
@@ -479,6 +494,8 @@ async function refresh(){
     // si la clé est refusée ou si OBS ne peut pas joindre l'API.
     if(CONFIG.FALLBACK_TO_DEMO){
       render(DEMO_FIXTURE);
+    } else {
+      renderPreMatch();
     }
   }
 }
